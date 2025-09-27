@@ -19,6 +19,6 @@ a website for showing games made.
 > [note view](https://github.com/shAdow-XJY/noteview)
 4. subFontPackage 的中文字体包体积优化功能
 > [subFontPackage](https://github.com/shAdow-XJY/subFontPackage)
-
 ## build
-flutter build web --web-renderer html --release --base-href /shadow_game_center/
+flutter build web --release --base-href /XJY.GAME.COMP.gameCenter/
+flutter build web --no-web-resources-cdn --release --base-href /XJY.GAME.COMP.gameCenter/
