@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_common/flutter_common.dart';
 import 'package:own_game_web_show/redux/app_state/state.dart';
 import 'package:own_game_web_show/router/router.dart';
 import 'package:redux/redux.dart';
@@ -20,14 +21,11 @@ class MyApp extends StatelessWidget {
         /// 为了能直接在child使用store，我们这里要继续包裹一层StoreBuilder
         child: StoreBuilder<AppState>(
             builder: (context, store) {
+              final isDark = store.state.themeModel.brightness == Brightness.dark;
               return MaterialApp(
                   debugShowCheckedModeBanner: false,
-                  title: 'shadow game web',
-                  theme: ThemeData(
-                    brightness: store.state.themeModel.brightness,
-                    fontFamily: 'Noto',
-                    useMaterial3: true,
-                  ),
+                  title: 'Shadow Game Center',
+                  theme: isDark ? AppTheme.darkTheme() : AppTheme.lightTheme(),
                   initialRoute: '/homePage', //初始化加载的路由
                   onGenerateRoute: onGenerateRoute,
               );
@@ -36,4 +34,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

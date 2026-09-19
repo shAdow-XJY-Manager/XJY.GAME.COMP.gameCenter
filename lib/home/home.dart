@@ -3,8 +3,8 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_common/flutter_common.dart';
 
-import '../components/grid_card.dart';
 import '../redux/action/theme_action.dart';
 import '../redux/app_state/state.dart';
 
@@ -36,111 +36,81 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
-          title: const Text('Shadow\'s Game Center'),
-          centerTitle: true,
-          leading: StoreConnector<AppState, VoidCallback>(
-            converter: (Store store) {
-              /// 返回的就是下面的 VoidCallback callback
-              return () => {
-                dayMode = store.state.themeModel.getDayMode(),
-                store.dispatch(SetThemeDataAction(brightness: dayMode ? Brightness.dark : Brightness.light,))
-              };
-            },
-            builder: (BuildContext context, VoidCallback callback) {
-              return IconButton(
-                onPressed: () {
-                  callback();
-                },
-                tooltip: 'day/night',
-                icon:
-                dayMode ? const Icon(Icons.sunny) : const Icon(Icons.brightness_2),
-              );
-            },
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const ImageIcon(AssetImage('assets/images/GitHub.png')),
-                  onPressed: () {
-                    launchUrl(Uri.parse('https://github.com/shAdow-XJY/own_game_web_show'));
-                  },
-                ),
-              ],
-            )
-          ],
+      backgroundColor: siteBackground,
+      appBar: AppBar(
+        title: const Text('Shadow\'s Game Center'),
+        centerTitle: true,
+        leading: StoreConnector<AppState, VoidCallback>(
+          converter: (Store store) {
+            return () => {
+              dayMode = store.state.themeModel.getDayMode(),
+              store.dispatch(SetThemeDataAction(brightness: dayMode ? Brightness.dark : Brightness.light,))
+            };
+          },
+          builder: (BuildContext context, VoidCallback callback) {
+            return IconButton(
+              onPressed: () {
+                callback();
+              },
+              tooltip: 'day/night',
+              icon: dayMode ? const Icon(Icons.sunny) : const Icon(Icons.brightness_2),
+            );
+          },
         ),
-        body: Container(
-          margin: const EdgeInsets.all(0.0),
-          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-          width: size.width,
-          height: size.height,
-          decoration: BoxDecoration(
-            border: Border.all(width: 2, color: Theme.of(context).primaryColor),
-            gradient: LinearGradient(
-                begin: Alignment.bottomLeft,
-                end: Alignment.topCenter,
-                tileMode: TileMode.mirror,
-                colors: [
-                  Theme.of(context).primaryColor.withOpacity(0.5),
-                  Theme.of(context).colorScheme.surface,
-                ]
-            ),
-            boxShadow: const [BoxShadow()],
+        actions: [
+          IconButton(
+            icon: const ImageIcon(AssetImage('assets/images/GitHub.png')),
+            onPressed: () {
+              launchUrl(Uri.parse('https://github.com/shAdow-XJY/own_game_web_show'));
+            },
           ),
-          child: ResponsiveBuilder(
-              builder: (context, sizingInformation){
-                if (sizingInformation.deviceScreenType == DeviceScreenType.mobile){
-                  crossAxisCount = 1;
-                }else if(sizingInformation.deviceScreenType == DeviceScreenType.tablet){
-                  crossAxisCount = 3;
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: ResponsiveBuilder(
+          builder: (context, sizingInformation){
+            if (sizingInformation.deviceScreenType == DeviceScreenType.mobile){
+              crossAxisCount = 1;
+            }else if(sizingInformation.deviceScreenType == DeviceScreenType.tablet){
+              crossAxisCount = 3;
+            }
+            return GridView.builder(
+              itemCount: navigationObj.length + websiteObj.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 20,
+                childAspectRatio: 0.75,
+              ),
+              itemBuilder: (BuildContext context, int index) {
+                if (index < navigationObj.length) {
+                  var game = navigationObj[index];
+                  return GameCard(
+                    imageProvider: AssetImage(game['imageUrl'] ?? 'assets/images/unknown.png'),
+                    title: game['gameName'] ?? 'unknown',
+                    tag: 'Repository',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/markdownPage', arguments: game['gameName']);
+                    },
+                  );
+                } else {
+                  var game = websiteObj[index - navigationObj.length];
+                  return GameCard(
+                    imageProvider: AssetImage(game['imageUrl'] ?? ''),
+                    title: game['gameName'] ?? '',
+                    tag: 'Website',
+                    onTap: () {
+                      launchUrl(Uri.parse(game['linkUrl'] ?? ''));
+                    },
+                  );
                 }
-                return GridView.builder(
-                    itemCount: navigationObj.length + websiteObj.length,
-                    //SliverGridDelegateWithFixedCrossAxisCount 构建一个横轴固定数量Widget
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      //横轴元素个数
-                        crossAxisCount: crossAxisCount,
-                        //纵轴间距
-                        mainAxisSpacing: 5.0,
-                        //横轴间距
-                        crossAxisSpacing: 10.0,
-                        //子组件宽高长度比例
-                        childAspectRatio: 0.9),
-                    itemBuilder: (BuildContext context, int index) {
-                      // 根据索引确定是哪个列表
-                      if (index < navigationObj.length) {
-                        // 从 navigationObj 中获取数据
-                        var game = navigationObj[index];
-                        return GridCard(
-                          cardName: game['gameName'] ?? 'unknown',
-                          assetImage: AssetImage(game['imageUrl'] ?? 'assets/images/unknown.png'),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/markdownPage', arguments: game['gameName']);
-                          },
-                          tag: 'Repository', // 标签显示
-                        );
-                      } else {
-                        // 从 websiteObj 中获取数据
-                        var game = websiteObj[index - navigationObj.length];
-                        return GridCard(
-                          cardName: game['gameName'] ?? '',
-                          assetImage: AssetImage(game['imageUrl'] ?? ''),
-                          onTap: () {
-                            launchUrl(Uri.parse(game['linkUrl'] ?? ''));
-                          },
-                          tag: 'Website', // 标签显示
-                        );
-                      }
-                    });
-              }),
+              },
+            );
+          },
         ),
+      ),
     );
   }
 }
